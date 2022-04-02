@@ -2,18 +2,21 @@
 
 ## Setting up the requirements
 
-Download the Python installer from [here](https://www.python.org/downloads/release/python-398/)
-Make sure "Add Python 3.9 to PATH is ticked
-Click on Customize installation, and make sure everything is ticked
-Click on "Next"
-Make sure "Add Python to environment variables" is ticked"
-Click install. and let it go
+1. Download the Python installer from [here](https://www.python.org/downloads/release/python-398/)  
+2. Make sure "Add Python 3.9 to PATH is ticked  
+3. Click on Customize installation, and make sure everything is ticked  
+4. Click on "Next"  
+5. Make sure "Add Python to environment variables" is ticked"  
+6. Click install. and let it go  
  
 
 
 ## Running the bot
 
-To run it first install the requirements with pip install -r requirements.txt
+To run it first install the requirements with `pip install -r requirements.txt`
+To do that, simply open the directory you've extracted the bot to, and type `cmd` in the address bar like so:
+![explorer_Jj87pVSbCj](https://user-images.githubusercontent.com/67830794/161401653-72fa3f27-0bd1-4863-89bc-cd13d8e4ecc6.gif)
+
 
 ### Filling up config.json:
 
