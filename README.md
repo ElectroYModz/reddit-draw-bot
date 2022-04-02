@@ -1,5 +1,5 @@
 # reddit-draw-bot
-to run it first install the requirements with pip install -r requirements.txt
+to run it first install the requirements with pip install -r requirements.txt<br>
 Fill up .env
 
 ENV_PLACE_USERNAME is the username of the developer account<br>
