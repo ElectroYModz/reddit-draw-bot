@@ -139,8 +139,7 @@ class PlaceClient:
         return waitTime / 1000
 
     def load_proxies(self):
-        lis = open('proxies.txt', 'r').read().splitlines()
-        
+        self.proxies = open('proxies.txt', 'r').read().splitlines()
         
         if(len(self.proxies) == 0):
             logging.info("No proxies found. Using direct connection.")
