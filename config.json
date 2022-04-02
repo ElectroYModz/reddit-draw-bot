@@ -4,14 +4,12 @@
         "worker1username": {
             "password": "password",
             "client_id": "clientid",
-            "client_secret": "clientsecret",
-            "start_coords": [0, 0]
+            "client_secret": "clientsecret"
         },
         "worker2username": {
             "password": "password",
             "client_id": "clientid",
-            "client_secret": "clientsecret",
-            "start_coords": [0, 0]
+            "client_secret": "clientsecret"
         }
     }
 }
