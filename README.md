@@ -47,9 +47,21 @@ Get client id and secret key [here](https://www.reddit.com/prefs/apps) scroll do
 `client_id` is the client id of the script, the one right under the name you gave the script  
 `clientsecret` is the secret key of the script
 
-**NOTE: do the same for the second worker and so on, make sure to place the curly brackets right**
 
 **start_coords ARE IGNORED, DO NOT MODIFY THEM**
+
+## Multiple Workers
+
+Just create multiple child arrays to "workers" in config.json
+### Proxies
+If you want to use this software on more than 2 accounts, the use of proxies is highly encouraged.
+1. Accuire the proxies from [here](https://proxy.webshare.io/login/)
+
+![chrome_q9uwZsUiLs](https://user-images.githubusercontent.com/67830794/161403144-354f8276-0335-491f-b6b4-3190d31c7d39.gif)
+**pay attention to the SOCKS5 part^**
+
+2. Input the proxies into `proxies.txt` using the provided format
+3. Go to town.
 
 ## Running the Script
 simply double click main.py
