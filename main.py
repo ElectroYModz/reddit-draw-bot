@@ -44,15 +44,7 @@ class PlaceClient:
         self.access_tokens = {}
         self.access_token_expires_at_timestamp = {}
 
-        # Image information
-        self.pix = None
-        self.image_size = None
-
         self.first_run_counter = 0
-
-        # Initialize-functions
-        self.load_image()
-
     """ Utils """
     # Convert rgb tuple to hexadecimal string
 
@@ -93,15 +85,6 @@ class PlaceClient:
         f.close()
 
         return json_data
-
-    # Read the input image.jpg file
-
-    def load_image(self):
-        # Read and load the image to draw and get its dimensions
-        im = Image.open(os.path.join(os.path.abspath(os.getcwd()), "image.jpg"))
-        self.pix = im.load()
-        logging.info(f"Loaded image size: {im.size}")
-        self.image_size = im.size
 
     """ Main """
     # Draw a pixel at an x, y coordinate in r/place with a specific color
@@ -182,122 +165,6 @@ class PlaceClient:
 
         # Reddit returns time in ms and we need seconds, so divide by 1000
         return waitTime / 1000
-
-    def get_board(self, access_token_in):
-        logging.info("Getting board")
-        ws = create_connection(
-            "wss://gql-realtime-2.reddit.com/query",
-            origin="https://hot-potato.reddit.com",
-        )
-        ws.send(
-            json.dumps(
-                {
-                    "type": "connection_init",
-                    "payload": {"Authorization": "Bearer " + access_token_in},
-                }
-            )
-        )
-        ws.recv()
-        ws.send(
-            json.dumps(
-                {
-                    "id": "1",
-                    "type": "start",
-                    "payload": {
-                        "variables": {
-                            "input": {
-                                "channel": {
-                                    "teamOwner": "AFD2022",
-                                    "category": "CONFIG",
-                                }
-                            }
-                        },
-                        "extensions": {},
-                        "operationName": "configuration",
-                        "query": "subscription configuration($input: SubscribeInput!) {\n  subscribe(input: $input) {\n    id\n    ... on BasicMessage {\n      data {\n        __typename\n        ... on ConfigurationMessageData {\n          colorPalette {\n            colors {\n              hex\n              index\n              __typename\n            }\n            __typename\n          }\n          canvasConfigurations {\n            index\n            dx\n            dy\n            __typename\n          }\n          canvasWidth\n          canvasHeight\n          __typename\n        }\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",
-                    },
-                }
-            )
-        )
-        ws.recv()
-        ws.send(
-            json.dumps(
-                {
-                    "id": "2",
-                    "type": "start",
-                    "payload": {
-                        "variables": {
-                            "input": {
-                                "channel": {
-                                    "teamOwner": "AFD2022",
-                                    "category": "CANVAS",
-                                    "tag": "0",
-                                }
-                            }
-                        },
-                        "extensions": {},
-                        "operationName": "replace",
-                        "query": "subscription replace($input: SubscribeInput!) {\n  subscribe(input: $input) {\n    id\n    ... on BasicMessage {\n      data {\n        __typename\n        ... on FullFrameMessageData {\n          __typename\n          name\n          timestamp\n        }\n        ... on DiffFrameMessageData {\n          __typename\n          name\n          currentTimestamp\n          previousTimestamp\n        }\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",
-                    },
-                }
-            )
-        )
-
-        file = ""
-        while True:
-            temp = json.loads(ws.recv())
-            if temp["type"] == "data":
-                msg = temp["payload"]["data"]["subscribe"]
-                if msg["data"]["__typename"] == "FullFrameMessageData":
-                    file = msg["data"]["name"]
-                    break
-
-        ws.close()
-
-        boardimg = BytesIO(requests.get(file, stream=True).content)
-        logging.info(f"Received board image: {file}")
-
-        return boardimg
-
-    def get_unset_pixel(self, boardimg, x, y):
-        pix2 = Image.open(boardimg).convert("RGB").load()
-        num_loops = 0
-        while True:
-            x += 1
-
-            if x >= self.image_size[0]:
-                y += 1
-                x = 0
-
-            if y >= self.image_size[1]:
-                if num_loops > 1:
-                    target_rgb = self.pix[0, 0]
-                    new_rgb = self.closest_color(target_rgb)
-                    return self.pixel_x_start, self.pixel_y_start, new_rgb
-                y = self.pixel_y_start
-                num_loops += 1
-
-            logging.debug(f"{x+self.pixel_x_start}, {y+self.pixel_y_start}")
-            logging.debug(
-                f"{x}, {y}, boardimg, {self.image_size[0]}, {self.image_size[1]}"
-            )
-
-            # print(self.pix[x, y])
-            target_rgb = self.pix[x, y]
-
-            new_rgb = self.closest_color(target_rgb)
-            if pix2[x + self.pixel_x_start, y + self.pixel_y_start] != new_rgb:
-                logging.debug(
-                    f"{pix2[x + self.pixel_x_start, y + self.pixel_y_start]}, {new_rgb}, {new_rgb != (69, 42, 0)}, {pix2[x, y] != new_rgb,}"
-                )
-                if new_rgb != (69, 42, 0):
-                    logging.debug(
-                        f"Replacing {pix2[x+self.pixel_x_start, y+self.pixel_y_start]} pixel at: {x+self.pixel_x_start},{y+self.pixel_y_start} with {new_rgb} color"
-                    )
-                    break
-                else:
-                    print("TransparrentPixel")
-        return x, y, new_rgb
 
     # Draw the input image
     def task(self, index, name, worker):
