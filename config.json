@@ -9,7 +9,6 @@
         "client_secret": "clientsecret",
         "start_coords": [0, 0]
       },
-      // if you only have one worker, you have to delete worker 2
       "worker2username": 
       {
         "password": "password",
@@ -17,6 +16,5 @@
         "client_secret": "clientsecret",
         "start_coords": [0, 50]
       }
-        // etc. add as many as you want with the format above, make sure to read the part about proxies in README.md
     }
   }
