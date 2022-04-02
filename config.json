@@ -1,6 +1,5 @@
 {
     "thread_delay": 2,
-
     "workers": {
         "worker1username": {
             "password": "password",
