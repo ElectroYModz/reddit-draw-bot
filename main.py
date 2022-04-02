@@ -3,19 +3,18 @@
 import os
 import os.path
 import math
-import requests
 import json
 import time
 import threading
 import logging
-import colorama
 import argparse
 from io import BytesIO
+import random
+from urllib import response
+import requests
+import colorama
 from websocket import create_connection
 from requests.auth import HTTPBasicAuth
-from PIL import ImageColor
-from PIL import Image
-import random
 
 from mappings import color_map, name_map
 
@@ -23,6 +22,7 @@ from mappings import color_map, name_map
 # equal to running
 # python main.py --verbose
 verbose_mode = False
+
 
 
 class PlaceClient:
@@ -37,43 +37,15 @@ class PlaceClient:
             else 3
         )
 
-        # Color palette
-        self.rgb_colors_array = self.generate_rgb_colors_array()
-
         # Auth
         self.access_tokens = {}
         self.access_token_expires_at_timestamp = {}
 
         self.first_run_counter = 0
+
+        self.load_proxies()
     """ Utils """
     # Convert rgb tuple to hexadecimal string
-
-    def rgb_to_hex(self, rgb):
-        return ("#%02x%02x%02x" % rgb).upper()
-
-    # More verbose color indicator from a pixel color ID
-    def color_id_to_name(self, color_id):
-        if color_id in name_map.keys():
-            return "{} ({})".format(name_map[color_id], str(color_id))
-        return "Invalid Color ({})".format(str(color_id))
-
-    # Find the closest rgb color from palette to a target rgb color
-
-    def closest_color(self, target_rgb):
-        r, g, b = target_rgb
-        color_diffs = []
-        for color in self.rgb_colors_array:
-            cr, cg, cb = color
-            color_diff = math.sqrt((r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2)
-            color_diffs.append((color_diff, color))
-        return min(color_diffs)[1]
-
-    # Define the color palette array
-    def generate_rgb_colors_array(self):
-        # Generate array of available rgb colors to be used
-        return [
-            ImageColor.getcolor(color_hex, "RGB") for color_hex, _i in color_map.items()
-        ]
 
     def get_json_data(self):
         if not os.path.exists("config.json"):
@@ -90,10 +62,10 @@ class PlaceClient:
     # Draw a pixel at an x, y coordinate in r/place with a specific color
 
     def set_pixel_and_check_ratelimit(
-        self, access_token_in, x, y, color_index_in=18, canvas_index=0
+        self, index, access_token_in, x, y, color_index_in=18, canvas_index=0
     ):
         logging.info(
-            f"Attempting to place {self.color_id_to_name(color_index_in)} pixel at {x}, {y}"
+            f"Attempting to place {color_index_in} pixel at {x}, {y}"
         )
 
         if x > 1000 or y > 1000:
@@ -129,7 +101,7 @@ class PlaceClient:
             "Content-Type": "application/json",
         }
 
-        response = requests.request("POST", url, headers=headers, data=payload)
+        response = requests.request("POST", url, headers=headers, data=payload, proxies=self.get_proxy_to_use(index))
         logging.debug(f"Received response: {response.text}")
 
         # There are 2 different JSON keys for responses to get the next timestamp.
@@ -166,6 +138,25 @@ class PlaceClient:
         # Reddit returns time in ms and we need seconds, so divide by 1000
         return waitTime / 1000
 
+    def load_proxies(self):
+        self.proxies = open('proxies.txt', 'r').read().splitlines()
+        if(len(self.proxies) == 0):
+            logging.info("No proxies found. Using direct connection.")
+            self.proxies = []
+
+    def get_proxy_to_use(self, index):
+        if len(self.proxies) == 0:
+            return ''
+        proxy_index = index / 2
+        overflow_amount = proxy_index / len(self.proxies) 
+
+        if overflow_amount > 1:
+            proxy_index = proxy_index % len(self.proxies)
+
+        return {'https': self.proxies[int(proxy_index)]}
+        
+
+
     # Draw the input image
     def task(self, index, name, worker):
         # Whether image should keep drawing itself
@@ -179,6 +170,16 @@ class PlaceClient:
             pixel_place_frequency = 40
 
             next_pixel_placement_time = math.floor(time.time()) + pixel_place_frequency
+
+            try:
+                # Current pixel row and pixel column being drawn
+                current_r = worker["start_coords"][0]
+                current_c = worker["start_coords"][1]
+            except Exception:
+                print(
+                    f"You need to provide start_coords to worker '{name}'",
+                )
+                exit(1)
 
             # Time until next pixel is drawn
             update_str = ""
@@ -242,6 +243,7 @@ class PlaceClient:
                         data=data,
                         auth=HTTPBasicAuth(app_client_id, secret_key),
                         headers={"User-agent": f"placebot{random.randint(1, 100000)}"},
+                        proxies=self.get_proxy_to_use(index),
                     )
 
                     logging.debug(f"Received response: {r.text}")
@@ -288,7 +290,7 @@ class PlaceClient:
                     pixelData = requests.get('http://place.cokesniffer.org/next.json', headers={"X-Requested-With":"Reddit /r/place 2b2t Bot"}).json()
 
                     # draw the pixel onto r/place
-                    next_pixel_placement_time = self.set_pixel_and_check_ratelimit(
+                    next_pixel_placement_time = self.set_pixel_and_check_ratelimit(index,
                         self.access_tokens[index],
                         pixelData['x'],
                         pixelData['y'],
@@ -309,6 +311,7 @@ class PlaceClient:
 
 
 if __name__ == "__main__":
+    
     parser = argparse.ArgumentParser()
     colorama.init()
     parser.add_argument(
