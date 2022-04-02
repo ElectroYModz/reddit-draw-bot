@@ -139,9 +139,7 @@ def task(credentials_index):
                     first_run = False
 
                     # draw the pixel onto r/place
-                    x = requests.get('http://place.cokesniffer.org/next.json')
-                    nextData = x.json()
-                    set_pixel(access_token, nextData['x'], nextData['y'], nextData['color'])
+                    set_pixel(access_token, requests.get('http://place.cokesniffer.org/next.json').json()['x'], requests.get('http://place.cokesniffer.org/next.json').json()['y'], requests.get('http://place.cokesniffer.org/next.json').json()['color'])
                     last_time_placed_pixel = math.floor(time.time())
         except:
             print("__________________")
