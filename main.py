@@ -180,16 +180,6 @@ class PlaceClient:
 
             next_pixel_placement_time = math.floor(time.time()) + pixel_place_frequency
 
-            try:
-                # Current pixel row and pixel column being drawn
-                current_r = worker["start_coords"][0]
-                current_c = worker["start_coords"][1]
-            except Exception:
-                print(
-                    f"You need to provide start_coords to worker '{name}'",
-                )
-                exit(1)
-
             # Time until next pixel is drawn
             update_str = ""
 
