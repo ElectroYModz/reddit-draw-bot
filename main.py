@@ -139,7 +139,9 @@ class PlaceClient:
         return waitTime / 1000
 
     def load_proxies(self):
-        self.proxies = open('proxies.txt', 'r').read().splitlines()
+        lis = open('proxies.txt', 'r').read().splitlines()
+        
+        
         if(len(self.proxies) == 0):
             logging.info("No proxies found. Using direct connection.")
             self.proxies = []
@@ -153,7 +155,7 @@ class PlaceClient:
         if overflow_amount > 1:
             proxy_index = proxy_index % len(self.proxies)
 
-        return {'https': 'socks5://'+self.proxies[int(proxy_index)]}
+        return {'https': self.proxies[int(proxy_index)]}
         
 
 
