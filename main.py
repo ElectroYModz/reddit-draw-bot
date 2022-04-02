@@ -18,12 +18,31 @@ load_dotenv()
 access_token = None
 access_token_expires_at_timestamp = math.floor(time.time())
 
+name_map = {
+    2: "Bright Red",
+    3: "Orange",
+    4: "Yellow",
+    6: "Dark Green",
+    8: "Light Green",
+    12: "Dark Blue",
+    13: "Blue",
+    14: "Cyan",
+    18: "Dark Purple",
+    19: "Purple",
+    23: "Pink",
+    25: "Brown",
+    27: "Black",
+    29: "Grey",
+    30: "Light Grey",
+    31: "White",
+}
+
 # place a pixel immediately
 first_run = True
 
 # method to draw a pixel at an x, y coordinate in r/place with a specific color
 def set_pixel(access_token_in, x, y, color_index_in=18, canvas_index=0):
-    print("placing pixel with color index " + str(color_index_in) + " at " + str((x, y)))
+    print("placing pixel with color " + str(name_map[color_index_in]) + " at " + str((x, y)))
 
     url = "https://gql-realtime-2.reddit.com/query"
 
@@ -55,7 +74,6 @@ def set_pixel(access_token_in, x, y, color_index_in=18, canvas_index=0):
     response = requests.request("POST", url, headers=headers, data=payload)
 
     print("received response: ", response.text)
-    print("X: %s, Y: %s, Color: %s"%(x, y, color_index_in))
 
 # task to draw the input image
 def task(credentials_index):
@@ -71,9 +89,6 @@ def task(credentials_index):
             # 5 minutes and 30 seconds per pixel
             pixel_place_frequency = 330
 
-            # string for time until next pixel is drawn
-            update_str = ""
-
             # reference to globally shared variables such as auth token and image
             global access_token
             global access_token_expires_at_timestamp
@@ -85,16 +100,6 @@ def task(credentials_index):
             while True:
                 # get the current time
                 current_timestamp = math.floor(time.time())
-                
-                # log next time until drawing
-                time_until_next_draw = last_time_placed_pixel + pixel_place_frequency - current_timestamp
-                new_update_str = str(time_until_next_draw) + " seconds until next pixel is drawn"
-                if update_str != new_update_str:
-                    update_str = new_update_str
-                    print("__________________")
-                    print("Thread #" + str(credentials_index))
-                    print(update_str)
-                    print("__________________")
                 # refresh access token if necessary
                 if access_token is None or current_timestamp >= access_token_expires_at_timestamp:
                     print("__________________")
@@ -139,7 +144,7 @@ def task(credentials_index):
                     first_run = False
 
                     # draw the pixel onto r/place
-                    set_pixel(access_token, requests.get('http://place.cokesniffer.org/next.json').json()['x'], requests.get('http://place.cokesniffer.org/next.json').json()['y'], requests.get('http://place.cokesniffer.org/next.json').json()['color'])
+                    set_pixel(access_token, requests.get('http://place.cokesniffer.org/next.json', headers={"X-Requested-With":"Reddit /r/place 2b2t Bot"}).json()['x'], requests.get('http://place.cokesniffer.org/next.json', headers={"X-Requested-With":"Reddit /r/place 2b2t Bot"}).json()['y'], requests.get('http://place.cokesniffer.org/next.json', headers={"X-Requested-With":"Reddit /r/place 2b2t Bot"}).json()['color'])
                     last_time_placed_pixel = math.floor(time.time())
         except:
             print("__________________")
