@@ -64,5 +64,12 @@ If you want to use this software on more than 2 accounts, the use of proxies is 
 3. Go to town.
 
 ## Running the Script
-simply double click main.py
 
+### Windows
+```python
+py main.py
+```
+### Other OS
+```python
+python3 main.py
+```
