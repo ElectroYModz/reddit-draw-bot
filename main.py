@@ -153,7 +153,7 @@ class PlaceClient:
         if overflow_amount > 1:
             proxy_index = proxy_index % len(self.proxies)
 
-        return {'https': self.proxies[int(proxy_index)]}
+        return {'https': 'socks5://'+self.proxies[int(proxy_index)]}
         
 
 
