@@ -15,7 +15,7 @@
 <ol>
 <li>To run it first install the requirements with pip install -r requirements.txt<br></li>
 <li>Filling up .env:<br></li>
-Get client id and scret key here https://www.reddit.com/prefs/appsscroll down and click the button that says are you a developer? create an app... or create another SCRIPT<br>
+Get client id and scret key here https://www.reddit.com/prefs/apps scroll down and click the button that says are you a developer? create an app... or create another SCRIPT<br>
 
 ENV_PLACE_USERNAME is the username of the developer account<br>
 ENV_PLACE_PASSWORD is the password of the developer account<br>
