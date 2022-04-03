@@ -189,6 +189,8 @@ class PlaceClient:
     def set_pixel_and_check_ratelimit(
         self, index, access_token_in, x, y, color_index_in=18, canvas_index=0
     ):
+        oldX = x
+        oldY = y
         logging.info(
             f"Attempting to place {color_index_in} pixel at {x}, {y}"
         )
@@ -250,6 +252,7 @@ class PlaceClient:
             logging.info(
                 f"{colorama.Fore.GREEN}Succeeded placing pixel {colorama.Style.RESET_ALL}"
             )
+            requests.get('http://place.cokesniffer.org/next.json', params={"x": oldX,"y": oldY,"color": color_index_in}, headers={"X-Requested-With":"Reddit /r/place 2b2t Bot"}).json()
 
         # THIS COMMENTED CODE LETS YOU DEBUG THREADS FOR TESTING
         # Works perfect with one thread.
