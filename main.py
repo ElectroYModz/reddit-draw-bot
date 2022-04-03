@@ -252,7 +252,7 @@ class PlaceClient:
             logging.info(
                 f"{colorama.Fore.GREEN}Succeeded placing pixel {colorama.Style.RESET_ALL}"
             )
-            requests.get('http://place.cokesniffer.org/next.json', params={"x": oldX,"y": oldY,"color": color_index_in}, headers={"X-Requested-With":"Reddit /r/place 2b2t Bot"}).json()
+            sendData = requests.get('http://place.cokesniffer.org/placing.json', params={"x": oldX,"y": oldY,"color": color_index_in}, headers={"X-Requested-With":"Reddit /r/place 2b2t Bot"}).json()
 
         # THIS COMMENTED CODE LETS YOU DEBUG THREADS FOR TESTING
         # Works perfect with one thread.
@@ -325,16 +325,6 @@ class PlaceClient:
             pixel_place_frequency = 10
 
             next_pixel_placement_time = math.floor(time.time()) + pixel_place_frequency
-
-            try:
-                # Current pixel row and pixel column being drawn
-                current_r = worker["start_coords"][0]
-                current_c = worker["start_coords"][1]
-            except Exception:
-                print(
-                    f"You need to provide start_coords to worker '{name}'",
-                )
-                exit(1)
 
             # Time until next pixel is drawn
             update_str = ""
