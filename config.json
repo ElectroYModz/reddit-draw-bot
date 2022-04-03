@@ -1,5 +1,5 @@
 {
-    "thread_delay": 2,
+    "thread_delay": 30,
     "workers": 
     {
       "worker1username": 
