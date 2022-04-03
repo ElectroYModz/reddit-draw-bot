@@ -448,7 +448,6 @@ class PlaceClient:
                     
 
                     logging.info(f"Found target at: x: {target['x']}, y: {target['y']}")
-                    logging.info(f"Pixel is: {name_map[color_map[self.rgb_to_hex(board[target['x'], target['y']])]]} is supposed to be {name_map[target['color']]}")
 
 
                     # draw the pixel onto r/place
