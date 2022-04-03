@@ -195,12 +195,15 @@ class PlaceClient:
             f"Attempting to place {color_index_in} pixel at {x}, {y}"
         )
 
-        if x > 1000 or y > 1000:
+        if x > 1000 and y > 1000:
+            canvas_index = 3
+        if x > 1000 and y < 1000:
             canvas_index = 1
-            if x > 1000: x -= 1000
-            if y > 1000: y -= 1000
+        if x < 1000 and y > 1000:
+            canvas_index = 2
         else:
-         canvas_index = 0
+            canvas_index = 0
+        
 
         url = "https://gql-realtime-2.reddit.com/query"
 
@@ -387,7 +390,7 @@ class PlaceClient:
                         "https://ssl.reddit.com/api/v1/access_token",
                         data=data,
                         auth=HTTPBasicAuth(app_client_id, secret_key),
-                        headers={"User-agent": f"Mozilla/5.0 (Windows NT 5.01; sl-SI; rv:1.9.2.20) Gecko/20171016 Firefox/37.0"},
+                        headers={"User-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 5_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B179 Safari/7534.48.3"},
                         proxies=self.get_proxy_to_use(index),
                     )
 
@@ -448,7 +451,6 @@ class PlaceClient:
                     
 
                     logging.info(f"Found target at: x: {target['x']}, y: {target['y']}")
-
 
                     # draw the pixel onto r/place
                     next_pixel_placement_time = self.set_pixel_and_check_ratelimit(index,
