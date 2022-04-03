@@ -1,10 +1,1 @@
-209.127.191.180:9279:ccsvwhbw:8cnqibknvoh0
-45.142.28.83:8094:ccsvwhbw:8cnqibknvoh0
-45.136.231.43:7099:ccsvwhbw:8cnqibknvoh0
-45.137.60.112:6640:ccsvwhbw:8cnqibknvoh0
-45.136.228.85:6140:ccsvwhbw:8cnqibknvoh0
-45.140.13.124:9137:ccsvwhbw:8cnqibknvoh0
-45.136.231.85:7141:ccsvwhbw:8cnqibknvoh0
-193.8.56.159:9223:ccsvwhbw:8cnqibknvoh0
-45.140.13.112:9125:ccsvwhbw:8cnqibknvoh0
-45.142.28.20:8031:ccsvwhbw:8cnqibknvoh0
+
