@@ -15,6 +15,8 @@ import requests
 import colorama
 from websocket import create_connection
 from requests.auth import HTTPBasicAuth
+from PIL import Image, UnidentifiedImageError
+from PIL import ImageColor
 
 from mappings import color_map, name_map
 
@@ -36,6 +38,8 @@ class PlaceClient:
             if self.json_data["thread_delay"] != None
             else 3
         )
+
+        self.rgb_colors_array = self.generate_rgb_colors_array()
 
         # Auth
         self.access_tokens = {}
@@ -60,6 +64,127 @@ class PlaceClient:
 
     """ Main """
     # Draw a pixel at an x, y coordinate in r/place with a specific color
+    def get_board(self, access_token_in):
+        logging.info("Getting board")
+        ws = create_connection(
+            "wss://gql-realtime-2.reddit.com/query",
+            origin="https://hot-potato.reddit.com",
+        )
+        ws.send(
+            json.dumps(
+                {
+                    "type": "connection_init",
+                    "payload": {"Authorization": "Bearer " + access_token_in},
+                }
+            )
+        )
+        ws.recv()
+        ws.send(
+            json.dumps(
+                {
+                    "id": "1",
+                    "type": "start",
+                    "payload": {
+                        "variables": {
+                            "input": {
+                                "channel": {
+                                    "teamOwner": "AFD2022",
+                                    "category": "CONFIG",
+                                }
+                            }
+                        },
+                        "extensions": {},
+                        "operationName": "configuration",
+                        "query": "subscription configuration($input: SubscribeInput!) {\n  subscribe(input: $input) {\n    id\n    ... on BasicMessage {\n      data {\n        __typename\n        ... on ConfigurationMessageData {\n          colorPalette {\n            colors {\n              hex\n              index\n              __typename\n            }\n            __typename\n          }\n          canvasConfigurations {\n            index\n            dx\n            dy\n            __typename\n          }\n          canvasWidth\n          canvasHeight\n          __typename\n        }\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",
+                    },
+                }
+            )
+        )
+        ws.recv()
+        ws.send(
+            json.dumps(
+                {
+                    "id": "2",
+                    "type": "start",
+                    "payload": {
+                        "variables": {
+                            "input": {
+                                "channel": {
+                                    "teamOwner": "AFD2022",
+                                    "category": "CANVAS",
+                                    "tag": "0",
+                                }
+                            }
+                        },
+                        "extensions": {},
+                        "operationName": "replace",
+                        "query": "subscription replace($input: SubscribeInput!) {\n  subscribe(input: $input) {\n    id\n    ... on BasicMessage {\n      data {\n        __typename\n        ... on FullFrameMessageData {\n          __typename\n          name\n          timestamp\n        }\n        ... on DiffFrameMessageData {\n          __typename\n          name\n          currentTimestamp\n          previousTimestamp\n        }\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",
+                    },
+                }
+            )
+        )
+
+        image_sizex = 2
+        image_sizey = 1
+
+        imgs = []
+        already_added = []
+        for i in range(0, image_sizex * image_sizey):
+            ws.send(
+                json.dumps(
+                    {
+                        "id": str(2 + i),
+                        "type": "start",
+                        "payload": {
+                            "variables": {
+                                "input": {
+                                    "channel": {
+                                        "teamOwner": "AFD2022",
+                                        "category": "CANVAS",
+                                        "tag": str(i),
+                                    }
+                                }
+                            },
+                            "extensions": {},
+                            "operationName": "replace",
+                            "query": "subscription replace($input: SubscribeInput!) {\n  subscribe(input: $input) {\n    id\n    ... on BasicMessage {\n      data {\n        __typename\n        ... on FullFrameMessageData {\n          __typename\n          name\n          timestamp\n        }\n        ... on DiffFrameMessageData {\n          __typename\n          name\n          currentTimestamp\n          previousTimestamp\n        }\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",
+                        },
+                    }
+                )
+            )
+            file = ""
+            while True:
+                temp = json.loads(ws.recv())
+                if temp["type"] == "data":
+                    msg = temp["payload"]["data"]["subscribe"]
+                    if msg["data"]["__typename"] == "FullFrameMessageData":
+                        if not temp["id"] in already_added:
+                            imgs.append(
+                                Image.open(
+                                    BytesIO(
+                                        requests.get(
+                                            msg["data"]["name"], stream=True
+                                        ).content
+                                    )
+                                )
+                            )
+                            already_added.append(temp["id"])
+                        break
+            ws.send(json.dumps({"id": str(2 + i), "type": "stop"}))
+
+        ws.close()
+
+        new_img = Image.new("RGB", (1000 * 2, 1000))
+
+        x_offset = 0
+        for img in imgs:
+            new_img.paste(img, (x_offset, 0))
+            x_offset += img.size[0]
+
+        logging.info(f"Got image: {file}")
+
+        return new_img, new_img.size[0], new_img.size[1]
+
 
     def set_pixel_and_check_ratelimit(
         self, index, access_token_in, x, y, color_index_in=18, canvas_index=0
@@ -140,6 +265,7 @@ class PlaceClient:
 
     def load_proxies(self):
         self.proxies = open('proxies.txt', 'r').read().splitlines()
+
         
         if(len(self.proxies) == 0):
             logging.info("No proxies found. Using direct connection.")
@@ -156,7 +282,32 @@ class PlaceClient:
 
         return {'https': self.proxies[int(proxy_index)]}
         
+    def rgb_to_hex(self, rgb):
+        return ("#%02x%02x%02x" % rgb).upper()
 
+    # More verbose color indicator from a pixel color ID
+    def color_id_to_name(self, color_id):
+        if color_id in name_map.keys():
+            return "{} ({})".format(name_map[color_id], str(color_id))
+        return "Invalid Color ({})".format(str(color_id))
+
+    # Find the closest rgb color from palette to a target rgb color
+
+    def closest_color(self, target_rgb):
+        r, g, b = target_rgb
+        color_diffs = []
+        for color in self.rgb_colors_array:
+            cr, cg, cb = color
+            color_diff = math.sqrt((r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2)
+            color_diffs.append((color_diff, color))
+        return min(color_diffs)[1]
+
+    # Define the color palette array
+    def generate_rgb_colors_array(self):
+        # Generate array of available rgb colors to be used
+        return [
+            ImageColor.getcolor(color_hex, "RGB") for color_hex, _i in color_map.items()
+        ]
 
     # Draw the input image
     def task(self, index, name, worker):
@@ -168,7 +319,7 @@ class PlaceClient:
 
             # note: Reddit limits us to place 1 pixel every 5 minutes, so I am setting it to
             # 5 minutes and 30 seconds per pixel
-            pixel_place_frequency = 40
+            pixel_place_frequency = 10
 
             next_pixel_placement_time = math.floor(time.time()) + pixel_place_frequency
 
@@ -287,8 +438,25 @@ class PlaceClient:
                     # get target color
                     # target_rgb = pix[current_r, current_c]
 
+                    board, width, height = self.get_board(self.access_tokens[index])
+
+                    board = board.convert("RGB").load()
+
                     # get the pixel data from the api
-                    pixelData = requests.get('http://place.cokesniffer.org/next.json', headers={"X-Requested-With":"Reddit /r/place 2b2t Bot"}).json()
+                    target = requests.get('http://place.cokesniffer.org/next.json', headers={"X-Requested-With":"Reddit /r/place 2b2t Bot"}).json()
+
+                    while color_map[
+                        self.rgb_to_hex(
+                            board[target['x'], target['y']]
+                            )] is target['color']:
+                        # if it is then get the next pixel
+                        target = requests.get('http://place.cokesniffer.org/next.json', headers={"X-Requested-With":"Reddit /r/place 2b2t Bot"}).json()
+                        
+                    
+
+                    logging.info(f"Found target at: x: {target['x']}, y: {target['y']}")
+                    logging.info(f"Pixel is: {name_map[color_map[self.rgb_to_hex(board[target['x'], target['y']])]]} is supposed to be {name_map[target['color']]}")
+
 
                     # draw the pixel onto r/place
                     next_pixel_placement_time = self.set_pixel_and_check_ratelimit(index,
