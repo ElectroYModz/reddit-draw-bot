@@ -461,9 +461,9 @@ class PlaceClient:
                     # draw the pixel onto r/place
                     next_pixel_placement_time = self.set_pixel_and_check_ratelimit(index,
                         self.access_tokens[index],
-                        pixelData['x'],
-                        pixelData['y'],
-                        pixelData['color'],
+                        target['x'],
+                        target['y'],
+                        target['color'],
                     )
 
             if not repeat_forever:
