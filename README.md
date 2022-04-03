@@ -67,7 +67,7 @@ If you want to use this software on more than 2 accounts, the use of proxies is 
 
 ### Windows
 ```python
-py main.py
+python main.py
 ```
 ### Other OS
 ```python
