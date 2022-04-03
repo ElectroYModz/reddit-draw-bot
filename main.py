@@ -387,7 +387,7 @@ class PlaceClient:
                         "https://ssl.reddit.com/api/v1/access_token",
                         data=data,
                         auth=HTTPBasicAuth(app_client_id, secret_key),
-                        headers={"User-agent": f"placebot{random.randint(1, 100000)}"},
+                        headers={"User-agent": f"Mozilla/5.0 (Windows NT 5.01; sl-SI; rv:1.9.2.20) Gecko/20171016 Firefox/37.0"},
                         proxies=self.get_proxy_to_use(index),
                     )
 
