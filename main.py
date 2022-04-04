@@ -300,17 +300,6 @@ class PlaceClient:
             return "{} ({})".format(name_map[color_id], str(color_id))
         return "Invalid Color ({})".format(str(color_id))
 
-    # Find the closest rgb color from palette to a target rgb color
-
-    def closest_color(self, target_rgb):
-        r, g, b = target_rgb
-        color_diffs = []
-        for color in self.rgb_colors_array:
-            cr, cg, cb = color
-            color_diff = math.sqrt((r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2)
-            color_diffs.append((color_diff, color))
-        return min(color_diffs)[1]
-
     # Define the color palette array
     def generate_rgb_colors_array(self):
         # Generate array of available rgb colors to be used
