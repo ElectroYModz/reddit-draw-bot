@@ -174,7 +174,7 @@ class PlaceClient:
 
         ws.close()
 
-        new_img = Image.new("RGB", (1000 * 2, 1000))
+        new_img = Image.new("RGB", (1000 * 2, 1000 * 2))
 
         x_offset = 0
         for img in imgs:
@@ -203,6 +203,9 @@ class PlaceClient:
             canvas_index = 2
         else:
             canvas_index = 0
+
+        if x > 1000: x -= 1000
+        if y > 1000: y -= 1000    
         
 
         url = "https://gql-realtime-2.reddit.com/query"
