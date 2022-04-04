@@ -433,12 +433,19 @@ class PlaceClient:
                     # get the pixel data from the api
                     target = requests.get('http://place.cokesniffer.org/next.json', headers={"X-Requested-With":"Reddit /r/place 2b2t Bot"}).json()
 
+                    i = 0
+                    
                     while color_map[
                         self.rgb_to_hex(
                             board[target['x'], target['y']]
                             )] is target['color']:
                         # if it is then get the next pixel
+                        i += 1
                         target = requests.get('http://place.cokesniffer.org/next.json', headers={"X-Requested-With":"Reddit /r/place 2b2t Bot"}).json()
+                        if i > 100: # alot of iterations have happend, maybe the board changed, update it
+                            board, width, height = self.get_board(self.access_tokens[index])
+                            board = board.convert("RGB").load()
+                            i = 0
                         
                     
 
